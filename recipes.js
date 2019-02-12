@@ -1,75 +1,50 @@
 const mongoose = require('mongoose');
-const Schema  = mongoose.Schema;
+const Schema   = mongoose.Schema;
 const data = require('./data.js');
+mongoose.connect('mongodb://localhost/recipeApp')
+  .then(() => {
+    console.log('Connected to Mongo!');
+  }).catch(err => {
+    console.error('Error connecting to mongo', err);
+  });
 
-mongoose.connect('mongodb://localhost/recipeApp', { useNewUrlParser: true })
-.then(()=> {
-console.log('Connected to Mongo!');
-}).catch(err => {
-  console.error('Error conecting to mongo', err);
-});
+const recipeSchema = new Schema({
+  title: {type: String, required: true, unique: true},
+  level: {type: String, enum:["Easy Peasy", "Amateur Chef", "UltraPro Chef"]},
+  ingredients: [],
+  cuisine: {type: String, required: true},
+  dishType: {type: String, enum:["Breakfast", "Dish", "Snack", "Drink", "Dessert", "Other"]},
+  image: {type:String, default: "https://images.media-allrecipes.com/images/75131.jpg"},
+  duration: {type:Number, min: 0},
+  creator: String,
+  created: {type: Date, default: new Date()}
+})
 
-let schema =  new Schema({
-    title: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    level: {
-      type: String,
-      enum: ["Easy Peasy","Amateur Chef", "UltraPro Chef"],
-    },
-    ingredients:{
-      type: Array
-    },
-    cuisine: {
-      type: String,
-      required: true,
-    },
-    dishType: {
-      type: String,
-      enum: ['Breakfast','Dish','Snack','Drink','Dessert','Other'],
-    },
-    image: {
-      type: String,
-      default: 'https://images.media-allrecipes.com/images/75131.jpg',
-    },
-    duration: {
-      type: Number,
-      min: 0,
-    },
-    creator: {
-     type: String,
-    },
-    created: {
-      type: Date,
-      default: Date.now,
-    }
-  }, {timestamps: true});
+const Recipe = mongoose.model("Recipe", recipeSchema);
 
-  const Recipe = mongoose.model('Recipe', schema);
 
-  //2.Create a new recipe
-    let milanese = {
-      title: 'Milanese with Mexican beans',
-      level: 'Begginer',
-      ingredients: ['1 kilogram Chicken breasts', '1 garlic', '300gr of beans', '1 lemon', '1 cup of breadcrumbs' ],
-      cuisine: 'Spanish',
-      dishType: ['Dish'],
-      image: 'https://www.google.com/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjvoeTcr6jgAhUM16wKHYGdDh4QjRx6BAgBEAU&url=https%3A%2F%2Fwww.kiwilimon.com%2Freceta%2Fcarnes-y-aves%2Fcerdos%2Fchuletas-de-cerdo%2Fmilanesa-de-cerdo-sencilla&psig=AOvVaw2kgOqQVsXShtXeV1HCODln&ust=1549585966241735',
-      duration: 20,
-      creator: 'AndresHM'
-  };
+let rice = Recipe.create({
+  title: "Rice", 
+  level: "Easy Peasy", 
+  ingredients: ["rice", "salt"], 
+  cuisine: "Mexican", 
+  dishType: "Dish", 
+  duration: 1,
+  creator: "Ziggy the rice burner",
+})
+.catch(err => console.log(err))
+.then(console.log("The recipe is created and is one the DB"));
 
-  Recipe.create(milanese)
-  .then((recipe) => console.log(`New recipe created : ${recipe.title}`))
-  .catch(err => console.log("An error to create the new recipe:", err));
+console.log(rice);
 
-  //3
-  Recipe.insertMany(data)
-  .then(recipes => {
-    recipes.forEach(recipe => console.log(`New recipe created: ${recipe.title}`));
-  })
-  .catch(err => console.log("Error adding all recipes:", err));
+Recipe.insertMany(data)
+  .then(console.log(data.length))
+  .catch(err => console.log(err))
 
-  //4
+Recipe.updateOne({ title: "Rigatoni alla Genovese"}, { duration: 100 })
+  .then(console.log("Updated to a 100"))
+  .catch(err => console.log(err));
+
+Recipe.deleteOne({ title: "Carrot Cake"})
+  .then(console.log("Deleted"))
+  .catch(err => console.log(err));
